@@ -46,14 +46,7 @@
              display: block;
         }
 
-        h2.author {
-            color: #555;
-            text-align: center;
-            font-size: 0.8em; 
-            margin-bottom: 15px;
-            margin-top: -8px; 
-            font-weight: normal;
-        }
+        /* ВИДАЛЕНО h2.author */
         
         /* Ключовий стиль для запобігання зуму на мобільних пристроях */
         input[type="number"] {
@@ -246,31 +239,52 @@
             margin-bottom: 10px; 
             color: #28a745;
         }
+        
+        /* === НОВІ СТИЛІ ДЛЯ КНОПОК СЕКУНДОМІРА === */
         .timer-buttons {
-            display: flex; 
-            gap: 10px; 
+            display: flex;
+            flex-direction: column; /* Stack vertically: Start/Stop then Reset */
+            align-items: center; /* Center items horizontally */
+            gap: 15px; 
         }
-        .timer-buttons button {
-            flex-grow: 1; 
-            padding: 15px 10px; 
+
+        /* Стиль для великої круглої кнопки СТАРТ/СТОП */
+        #startStopBtn {
+            background-color: #17a2b8;
+            width: 150px; /* Великий розмір */
+            height: 150px; /* Великий розмір для кола */
+            border-radius: 50%; /* Кругла форма */
+            padding: 0; 
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.5em; /* Більший шрифт */
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2); 
+            flex-grow: 0;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        #startStopBtn:active {
+            transform: scale(0.98); /* Ефект натискання */
+        }
+        
+        /* Стиль для кнопки СКИДАННЯ */
+        #resetBtn {
+            background-color: #6c757d;
+            width: 80%; /* Трохи менша ширина */
+            max-width: 250px;
+            padding: 10px; 
             border: none;
             border-radius: 8px; 
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: opacity 0.2s;
-            font-size: 1.1em; 
+            font-size: 1em; 
             box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+            flex-grow: 0;
         }
-        
-        #startStopBtn { 
-            background-color: #17a2b8; 
-            flex-grow: 3; 
-        }
-        #resetBtn { 
-            background-color: #6c757d; 
-            flex-grow: 2; 
-        }
+        /* ======================================= */
 
         /* Стилі для БЛОКУ РЕЗУЛЬТАТІВ */
         #result {
@@ -312,10 +326,12 @@
             padding-bottom: 5px;
         }
 
+        /* ОНОВЛЕНИЙ СТИЛЬ ФОРМУЛИ: ЧОРНИЙ КОЛІР ТА ЖИРНИЙ ШРИФТ */
         #reference .formula {
             font-family: 'Courier New', monospace;
             font-size: 1em; 
-            color: #007bff; 
+            color: #000000; /* Змінено на чорний */
+            font-weight: bold; /* Зроблено жирним */
             display: block;
             margin: 10px 0;
             padding: 3px; 
@@ -335,12 +351,15 @@
             font-weight: bold;
         }
         
-        /* === СТИЛЬ ДЛЯ ПІДВАЛУ З ПОСИЛАННЯМ (НОВИЙ) === */
+        /* === СТИЛЬ ДЛЯ ПІДВАЛУ З ПОСИЛАННЯМ === */
         .footer-link {
             text-align: center;
             margin-top: 20px;
             padding-bottom: 10px;
             font-size: 0.9em;
+            display: flex;
+            flex-direction: column;
+            gap: 5px; 
         }
 
         .footer-link a {
@@ -349,7 +368,28 @@
             font-weight: bold;
             transition: color 0.3s;
         }
+        
+        /* СТИЛЬ ДЛЯ КНОПКИ ПІДТРИМКИ */
+        .footer-link .support-button {
+             background-color: #13872c; 
+             color: white;
+             padding: 8px 15px;
+             border-radius: 20px;
+             display: inline-block;
+             margin-left: 10px;
+             font-size: 0.95em;
+             font-weight: bold;
+             text-transform: uppercase;
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+             transition: background-color 0.2s, transform 0.2s;
+        }
 
+        .footer-link .support-button:hover {
+            background-color: #106f23;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+        
         .footer-link a:hover {
             color: #0056b3;
             text-decoration: underline;
@@ -363,6 +403,12 @@
             .container {
                 padding: 25px; 
             }
+             .footer-link {
+                flex-direction: row; /* На десктопах посилання в один рядок */
+                justify-content: center;
+                align-items: center;
+                gap: 15px;
+            }
         }
     </style>
 </head>
@@ -371,8 +417,6 @@
 <div class="container">
     <h1>⚡ Калькулятор контролера ⚡</h1>
     <span class="h1-subtitle">(перевірка лічильника електроенергії)</span> 
-    <h2 class="author">Mykhailo Kryzhanivskyi</h2>
-
     <hr>
     <h2>1. Технічні параметри</h2>
     
@@ -440,7 +484,7 @@
 
     <hr>
 
-    <h3>3. Результат</h3>
+    <h3 id="resultHeader">3. Результат</h3>
     <div id="result">
         Будь ласка, введіть значення для розрахунку.
     </div>
@@ -452,9 +496,16 @@
         Тут буде відображено використані формули та проміжні значення.
     </div>
 
-</div> <div class="footer-link">
-    Зворотний зв'язок: <a href="https://t.me/IcyMike" target="_blank">@IcyMike (Telegram)</a>
-</div>
+</div> 
+<div class="footer-link">
+    <span style="color: #555; font-size: 0.9em;">Автор: Mykhailo Kryzhanivskyi</span>
+    <span style="color: #555; font-size: 0.9em;">
+        Зворотний зв'язок: <a href="https://t.me/IcyMike" target="_blank">@IcyMike (Telegram)</a>
+        <a href="https://send.monobank.ua/jar/725KySkFSn" target="_blank" class="support-button">
+            💰 Підтримати проект
+        </a>
+    </span>
+    </div>
 <script>
     let timerInterval;
     let startTime;
@@ -582,6 +633,8 @@
         
         if (doCalculation) {
             calculateFromTimer(elapsedTime);
+            // АВТОМАТИЧНИЙ СКРОЛ ДО РЕЗУЛЬТАТУ
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         }
     }
 
