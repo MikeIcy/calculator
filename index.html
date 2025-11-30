@@ -259,12 +259,24 @@
             border: 2px solid #28a745;
             border-radius: 8px;
             background-color: #f0fff0;
+            transition: background-color 0.1s; /* Для плавного блимання */
         }
+        
+        /* НОВИЙ СТИЛЬ: Фон, що імітує імпульс (блимання) */
+        /* ЗМІНА: Змінено колір з синього на червоний */
+        #timerSection.flash-active {
+            background-color: #ff0000; /* Яскравий ЧЕРВОНИЙ колір імпульсу */
+        }
+        
         #timerDisplay {
             font-size: 2em; 
             font-weight: bold;
             margin-bottom: 10px; 
             color: #28a745;
+        }
+        
+        #timerSection.flash-active #timerDisplay {
+             color: white; /* Зміна кольору тексту під час блимання */
         }
         
         /* === НОВІ СТИЛІ ДЛЯ КНОПОК СЕКУНДОМІРА === */
@@ -559,7 +571,7 @@
     
     <div id="inputTime" class="hidden-input" style="display: block;">
         <div id="timerSection">
-            <div id="timerDisplay">00:00:00.00</div>
+            <div id="timerDisplay">00:00.00</div> 
             <div class="timer-buttons">
                 <button id="startStopBtn" onclick="toggleTimer()">СТАРТ</button>
                 <button id="resetBtn" onclick="resetTimer()">СКИДАННЯ</button>
@@ -599,6 +611,7 @@
     </div>
 <script>
     let timerInterval;
+    let flashInterval; // Додано інтервал для блимання
     let startTime;
     let elapsedTime = 0; // Час в мілісекундах
     
@@ -676,14 +689,18 @@
         updateFilledClasses();
     }
 
+    /**
+     * ОНОВЛЕНО: Форматує час у мілісекундах до MM:SS.ms
+     */
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
-        let hours = Math.floor(totalSeconds / 3600);
-        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        // let hours = Math.floor(totalSeconds / 3600); // ВИДАЛЕНО
+        let minutes = Math.floor(totalSeconds / 60); // Змінено на загальну кількість хвилин
         let seconds = totalSeconds % 60;
         let milliseconds = Math.floor((ms % 1000) / 10); 
 
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+        // Попередній код: return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
     }
     
     function formatHoursMinutesSeconds(t_hours) {
@@ -712,13 +729,58 @@
         if (timerInterval) {
             stopTimer(false); 
         }
+        // Зупиняємо блимання при зміні режиму
+        stopFlashing(); 
+        
         elapsedTime = 0;
-        document.getElementById('timerDisplay').textContent = "00:00:00.00"; 
+        // ОНОВЛЕНО: Ініціалізація формату дисплея
+        document.getElementById('timerDisplay').textContent = "00:00.00"; 
         document.getElementById('startStopBtn').textContent = "СТАРТ";
         document.getElementById('startStopBtn').style.backgroundColor = "#17a2b8";
         
         clearErrorHighlight(); // Очищення підсвічування при зміні режиму
         calculate();
+    }
+    
+    // --- ФУНКЦІЇ БЛИМАННЯ (СИНХРОНІЗАЦІЯ З ЛІЧИЛЬНИКОМ) ---
+
+    /**
+     * Ініціює блимання фону з розрахованою частотою.
+     * @param {number} P_kW_calculated - Розрахована потужність у кВт.
+     * @param {number} C - Постійна лічильника.
+     */
+    function startFlashing(P_kW_calculated, C) {
+        stopFlashing(); // Зупиняємо, якщо вже працює
+
+        // Формула для часу між імпульсами (періоду) в мілісекундах:
+        // T_imp = (1 кВт·год / P кВт) * (3600 сек/год * 1000 мс/сек) / C імп/кВт·год
+        // T_imp (мс) = (3600 * 1000) / (C * P)
+        const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
+        
+        // Встановлюємо інтервал на повний період
+        let isFlashing = false;
+        const timerSection = document.getElementById('timerSection');
+
+        flashInterval = setInterval(() => {
+            // Імітуємо дуже короткий імпульс (блимання триває 100 мс)
+            timerSection.classList.add('flash-active');
+            setTimeout(() => {
+                timerSection.classList.remove('flash-active');
+            }, 100); 
+
+        }, flashPeriodMs); 
+    }
+
+    /**
+     * Зупиняє блимання.
+     */
+    function stopFlashing() {
+        if (flashInterval) {
+            clearInterval(flashInterval);
+            flashInterval = null;
+        }
+        // Забезпечуємо, що фон повертається до нормального
+        document.getElementById('timerSection').classList.remove('flash-active');
     }
 
     // --- ФУНКЦІЇ СЕКУНДОМІРА ---
@@ -733,13 +795,40 @@
         if (timerInterval) return; 
         
         clearErrorHighlight(); // При старті таймера припускаємо, що все гаразд
-        document.getElementById('result').innerHTML = "⏱️ **Секундомір працює...** Натисніть **СТОП** для розрахунку.";
         
+        const U = parseFloat(document.getElementById('voltage').value); 
+        const I = parseFloat(document.getElementById('current').value); 
+        const C = parseFloat(document.getElementById('meterConstant').value); 
+        const P_measured = parseFloat(document.getElementById('powerMeasured').value);
+        const P_kW_calculated = calculatePower(U, I, P_measured);
+        
+        const resultDiv = document.getElementById('result');
+        const referenceDiv = document.getElementById('referenceContent'); 
+        
+        // Валідація перед стартом
+        if (isNaN(C) || C <= 0 || P_kW_calculated === null || P_kW_calculated <= 0) {
+             // Підсвічуємо поля U, I, P, C
+             document.getElementById('voltageGroup').classList.add('error-highlight');
+             document.getElementById('currentGroup').classList.add('error-highlight');
+             document.getElementById('powerGroup').classList.add('error-highlight');
+             document.getElementById('meterConstantGroup').classList.add('error-highlight');
+             resultDiv.innerHTML = "❌ **Помилка:** Введіть коректні **Технічні параметри (U, I, P та C)** перед початком вимірювання.";
+             referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
+             return;
+        }
+
+
+        resultDiv.innerHTML = "⏱️ **Секундомір працює...** Натисніть **СТОП** для розрахунку.";
+        
+        // Запуск блимання
+        startFlashing(P_kW_calculated, C); 
+
         startTime = Date.now() - elapsedTime;
         timerInterval = setInterval(updateTimerDisplay, 10); 
         
         document.getElementById('startStopBtn').textContent = "СТОП";
-        document.getElementById('startStopBtn').style.backgroundColor = "#dc3545";
+        // ЗМІНА: Змінено колір кнопки СТОП на помаранчевий
+        document.getElementById('startStopBtn').style.backgroundColor = "#ff6a00"; 
         
         // Оновлено: використовуємо referenceContent
         document.getElementById('referenceContent').innerHTML = "Очікування на зупинку секундоміра для виконання розрахунку...";
@@ -749,6 +838,9 @@
         if (!timerInterval) return;
         clearInterval(timerInterval);
         timerInterval = null;
+
+        // Зупинка блимання
+        stopFlashing(); 
 
         document.getElementById('startStopBtn').textContent = "СТАРТ";
         document.getElementById('startStopBtn').style.backgroundColor = "#17a2b8";
@@ -771,7 +863,8 @@
     function resetTimer() {
         stopTimer(false); 
         elapsedTime = 0;
-        document.getElementById('timerDisplay').textContent = "00:00:00.00"; 
+        // ОНОВЛЕНО: Ініціалізація формату дисплея
+        document.getElementById('timerDisplay').textContent = "00:00.00"; 
         calculate();
     }
 
@@ -837,6 +930,14 @@
                         <li>Заміряний Час (t\u208B\u0441\u0435\u043A): <strong>${t_seconds_fixed}</strong> сек</li>
                         <li>N = (${P_kW_calculated.toFixed(3)} ${multiplicationDot} ${t_seconds_fixed} ${multiplicationDot} ${C}) / 3600 = <strong>${N_pulses.toFixed(2)}</strong> імп</li>
                      </ul>`;
+                     
+            // Додаємо інформацію про частоту блимання
+            const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
+            html += `<p>Проміжний розрахунок:</p>
+                     <ul class="value-list">
+                        <li>Розрахунковий період між імпульсами (T\u208B\u043C\u043F): <strong>${flashPeriodMs.toFixed(0)}</strong> мс</li>
+                     </ul>`;
+
 
         } else if (calcMode === 'time' && N_input > 0) {
             const E_kWh = N_input / C; 
@@ -900,7 +1001,8 @@
         
         // 3. Перевірка Часу
         if (timeMs === 0) {
-            resultDiv.innerHTML = "⚠️ **Помилка:** Секундомір зупинено на 00:00:00.00. Спочатку натисніть СТАРТ.";
+            // ОНОВЛЕНО: Формат часу
+            resultDiv.innerHTML = "⚠️ **Помилка:** Секундомір зупинено на 00:00.00. Спочатку натисніть СТАРТ."; 
             referenceDiv.innerHTML = "Вимірювання часу не було розпочато.";
             return;
         }
@@ -944,6 +1046,7 @@
         const referenceDiv = document.getElementById('referenceContent'); 
         
         clearErrorHighlight(); // Початок валідації
+        stopFlashing(); // Зупиняємо блимання, оскільки не йде вимірювання
 
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
@@ -980,7 +1083,17 @@
 
         if (calcMode === 'pulses') {
             if (P_kW_calculated !== null && P_kW_calculated > 0) {
-                 resultDiv.innerHTML = `**Потужність** визначена: **${P_kW_calculated.toFixed(3)} кВт**. Натисніть **СТАРТ** для вимірювання часу.`;
+                 // ОНОВЛЕНО: Відображаємо розрахунковий період для користувача
+                 const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
+                 const flashFreq = 1000 / flashPeriodMs; // імп/сек
+                 
+                 resultDiv.innerHTML = `
+                    ✅ **Готовність!** <br>
+                    **Потужність** визначена: **${P_kW_calculated.toFixed(3)} кВт**. <br>
+                    Розрахункова частота імпульсів: **${flashFreq.toFixed(3)} імп/с** (або **${flashPeriodMs.toFixed(0)} мс** між імпульсами). <br>
+                    Натисніть **СТАРТ** для вимірювання часу.
+                 `;
+                 
                  referenceDiv.innerHTML = generateReferenceHTML('pulses', U, I, P_measured, C, null, null, P_kW_calculated, null, null);
             } else {
                  // Підсвічуємо поля U, I, P
