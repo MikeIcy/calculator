@@ -50,9 +50,18 @@
              font-weight: normal;
              display: block;
         }
-
-        /* ВИДАЛЕНО h2.author */
         
+        /* === ЗМІНА: ЄДИНИЙ СТИЛЬ ДЛЯ ЗАГОЛОВКІВ БЛОКІВ (h2, h3) === */
+        h2, h3 {
+            color: #333; /* Темний колір для кращої читабельності */
+            font-size: 1.25em; 
+            font-weight: bold;
+            border-bottom: 2px solid #007bff; /* Виділення лінією */
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
         /* Ключовий стиль для запобігання зуму на мобільних пристроях */
         input[type="number"] {
             font-size: 16px; 
@@ -73,6 +82,13 @@
             padding: 10px; 
             transition: border-color 0.3s, box-shadow 0.3s;
             background-color: #fff;
+        }
+        
+        /* === ДОДАНО: СТИЛЬ ДЛЯ ПІДСВІЧУВАННЯ ПОМИЛОК === */
+        .error-highlight {
+            border-color: #dc3545 !important; 
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5) !important;
+            background-color: #fcebeb !important; /* Напівпрозорий червоний фон */
         }
 
         .styled-input-group.filled {
@@ -228,6 +244,12 @@
              border-color: #007bff;
              box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
         }
+        
+        /* === ДОДАНО: СТИЛЬ ДЛЯ ПІДСВІЧУВАННЯ ПОМИЛОК INPUT В inputPulses === */
+        #inputPulses.error-highlight input {
+             border-color: #dc3545 !important;
+             box-shadow: 0 0 5px rgba(220, 53, 69, 0.5) !important;
+        }
 
         /* Стилі для Секундоміра */
         #timerSection {
@@ -359,8 +381,8 @@
         #referenceHeader {
             cursor: pointer;
             transition: color 0.2s;
-            margin-top: 15px;
-            margin-bottom: 0;
+            /* ВИДАЛЕНО: margin-top: 15px; */
+            /* ВИДАЛЕНО: margin-bottom: 0; */
         }
         
         #referenceHeader:hover {
@@ -483,13 +505,14 @@
     <h1>⚡ Калькулятор контролера ⚡</h1>
     <span class="h1-subtitle">(перевірка лічильника електроенергії)</span> 
     <hr>
+    
     <h2>1. Технічні параметри</h2>
     
     <div class="input-group" id="voltageRow"> 
         <div id="voltageGroup" class="styled-input-group">
             <label for="voltage">Напруга (U), В</label>
             <input type="number" id="voltage" value="" required min="1" 
-                   oninput="handleInputExclusion('voltage'); checkAndToggleFilled('voltage'); calculate();" 
+                   oninput="handleInputExclusion('voltage'); checkAndToggleFilled('voltage'); clearErrorHighlight(); calculate();" 
                    placeholder="Наприклад 230">
         </div>
     </div>
@@ -498,7 +521,7 @@
         <div id="currentGroup" class="styled-input-group">
             <label for="current">Струм (I), А</label>
             <input type="number" id="current" value="" required min="0.1" 
-                   oninput="handleInputExclusion('current'); checkAndToggleFilled('current'); calculate();" 
+                   oninput="handleInputExclusion('current'); checkAndToggleFilled('current'); clearErrorHighlight(); calculate();" 
                    placeholder="Наприклад 16">
         </div>
     </div>
@@ -509,15 +532,18 @@
         <div id="powerGroup" class="styled-input-group">
             <label for="powerMeasured">Потужність (P), кВт</label>
             <input type="number" id="powerMeasured" value="" min="0.01" 
-                   oninput="handleInputExclusion('power'); checkAndToggleFilled('powerMeasured'); calculate();">
+                   oninput="handleInputExclusion('power'); checkAndToggleFilled('powerMeasured'); clearErrorHighlight(); calculate();">
         </div>
     </div>
     
-    <div class="input-group" id="meterConstantGroup">
-        <label for="meterConstant">Постійна лічильника (C), імп/кВт·год:</label>
-        <input type="number" id="meterConstant" value="" required min="1" 
-               oninput="checkAndToggleFilled('meterConstant'); calculate()" 
-               placeholder="Наприклад, 6400"> </div>
+    <div class="input-group">
+        <div id="meterConstantGroup">
+            <label for="meterConstant">Постійна лічильника (C), імп/кВт·год:</label>
+            <input type="number" id="meterConstant" value="" required min="1" 
+                   oninput="checkAndToggleFilled('meterConstant'); clearErrorHighlight(); calculate()" 
+                   placeholder="Наприклад, 6400"> 
+        </div>
+    </div>
 
     <hr>
 
@@ -543,7 +569,7 @@
     
     <div id="inputPulses" class="hidden-input">
         <label for="pulses">Кількість імпульсів (N):</label>
-        <input type="number" id="pulses" value="" required min="1" oninput="calculate()" placeholder="Наприклад, 20">
+        <input type="number" id="pulses" value="" required min="1" oninput="clearErrorHighlight(); calculate()" placeholder="Наприклад, 20">
     </div>
 
 
@@ -575,6 +601,17 @@
     let timerInterval;
     let startTime;
     let elapsedTime = 0; // Час в мілісекундах
+    
+    /**
+     * Функція для видалення червоного підсвічування з усіх полів.
+     */
+    function clearErrorHighlight() {
+        document.getElementById('voltageGroup').classList.remove('error-highlight');
+        document.getElementById('currentGroup').classList.remove('error-highlight');
+        document.getElementById('powerGroup').classList.remove('error-highlight');
+        document.getElementById('meterConstantGroup').classList.remove('error-highlight');
+        document.getElementById('inputPulses').classList.remove('error-highlight');
+    }
 
     /**
      * Функція для розгортання/згортання розділу Довідки
@@ -680,6 +717,7 @@
         document.getElementById('startStopBtn').textContent = "СТАРТ";
         document.getElementById('startStopBtn').style.backgroundColor = "#17a2b8";
         
+        clearErrorHighlight(); // Очищення підсвічування при зміні режиму
         calculate();
     }
 
@@ -694,6 +732,7 @@
     function startTimer() {
         if (timerInterval) return; 
         
+        clearErrorHighlight(); // При старті таймера припускаємо, що все гаразд
         document.getElementById('result').innerHTML = "⏱️ **Секундомір працює...** Натисніть **СТОП** для розрахунку.";
         
         startTime = Date.now() - elapsedTime;
@@ -828,28 +867,38 @@
             return;
         }
         
+        clearErrorHighlight(); // Початок валідації
+
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
         const C = parseFloat(document.getElementById('meterConstant').value); 
         const P_measured = parseFloat(document.getElementById('powerMeasured').value);
         const resultDiv = document.getElementById('result');
-        // Оновлено: використовуємо referenceContent
         const referenceDiv = document.getElementById('referenceContent'); 
 
+        // 1. Перевірка Постійної лічильника
         if (isNaN(C) || C <= 0) {
-             resultDiv.innerHTML = "❌ **Помилка:** Введіть коректну **Постійну** лічильника.";
+             document.getElementById('meterConstantGroup').classList.add('error-highlight');
+             resultDiv.innerHTML = "❌ **Помилка:** Введіть коректну **Постійну** лічильника (C).";
              referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
              return;
         }
-
+        
         const P_kW_calculated = calculatePower(U, I, P_measured);
 
+        // 2. Перевірка Потужності
         if (P_kW_calculated === null || P_kW_calculated <= 0) {
+            // Підсвічуємо всі поля для розрахунку потужності
+            document.getElementById('voltageGroup').classList.add('error-highlight');
+            document.getElementById('currentGroup').classList.add('error-highlight');
+            document.getElementById('powerGroup').classList.add('error-highlight');
+            
             resultDiv.innerHTML = "❌ **Помилка:** Введіть коректні значення для **Потужності (P)** АБО заповніть **Напругу (U)** та **Струм (I)**.";
             referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
             return;
         }
         
+        // 3. Перевірка Часу
         if (timeMs === 0) {
             resultDiv.innerHTML = "⚠️ **Помилка:** Секундомір зупинено на 00:00:00.00. Спочатку натисніть СТАРТ.";
             referenceDiv.innerHTML = "Вимірювання часу не було розпочато.";
@@ -892,9 +941,9 @@
     function calculate() {
         const calcMode = document.querySelector('input[name="calculationMode"]:checked').value;
         const resultDiv = document.getElementById('result');
-        // Оновлено: використовуємо referenceContent
         const referenceDiv = document.getElementById('referenceContent'); 
-
+        
+        clearErrorHighlight(); // Початок валідації
 
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
@@ -919,8 +968,10 @@
         } 
         // =========================================================
 
-        if (isNaN(C)) {
-            resultDiv.innerHTML = "Будь ласка, введіть **Постійну** лічильника.";
+        // 1. Перевірка Постійної лічильника
+        if (isNaN(C) || C <= 0) {
+            document.getElementById('meterConstantGroup').classList.add('error-highlight');
+            resultDiv.innerHTML = "Будь ласка, введіть коректну **Постійну** лічильника (C).";
             referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
             return;
         }
@@ -932,6 +983,11 @@
                  resultDiv.innerHTML = `**Потужність** визначена: **${P_kW_calculated.toFixed(3)} кВт**. Натисніть **СТАРТ** для вимірювання часу.`;
                  referenceDiv.innerHTML = generateReferenceHTML('pulses', U, I, P_measured, C, null, null, P_kW_calculated, null, null);
             } else {
+                 // Підсвічуємо поля U, I, P
+                 document.getElementById('voltageGroup').classList.add('error-highlight');
+                 document.getElementById('currentGroup').classList.add('error-highlight');
+                 document.getElementById('powerGroup').classList.add('error-highlight');
+                 
                  resultDiv.innerHTML = "Введіть параметри **U** та **I**, або **P** та натисніть **СТАРТ**.";
                  referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
             }
@@ -940,13 +996,21 @@
         }
         
         if (calcMode === 'time') {
+            // 2. Перевірка Кількість імпульсів
             if (isNaN(N) || N <= 0) {
+                 document.getElementById('inputPulses').classList.add('error-highlight');
                  resultDiv.innerHTML = "Будь ласка, введіть коректну **Кількість Імпульсів (N)**.";
                  referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
                  return;
             }
 
+            // 3. Перевірка Потужності
             if (P_kW_calculated === null || P_kW_calculated <= 0) {
+                // Підсвічуємо поля U, I, P
+                document.getElementById('voltageGroup').classList.add('error-highlight');
+                document.getElementById('currentGroup').classList.add('error-highlight');
+                document.getElementById('powerGroup').classList.add('error-highlight');
+                
                 resultDiv.innerHTML = "❌ **Помилка:** Введіть коректні значення для **Потужності (P)** АБО заповніть **Напругу (U)** та **Струм (I)**.";
                 referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
                 return;
