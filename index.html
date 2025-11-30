@@ -138,51 +138,18 @@
             font-size: 1.1em; 
             color: #007bff;
         }
-        
-        /* === Стиль для Постійної лічильника === */
-        #meterConstantGroup {
-             padding: 10px; 
-             border: 1px solid #dcdcdc; 
-             border-radius: 15px;
-             transition: border-color 0.3s, box-shadow 0.3s;
-             background-color: #fff;
-             margin-bottom: 15px; 
-        }
-        
-        #meterConstantGroup.filled {
-             border-color: #28a745; 
-             box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
-             background-color: #e9f5e9; 
-        }
-        
-        #meterConstantGroup label {
-             text-align: center;
-             margin-bottom: 8px; 
-             display: block; 
-        }
 
-        #meterConstantGroup input {
-            width: 100%;
-            padding: 8px; 
-            margin-bottom: 0; 
-            border: 1px solid #ccc; 
-            border-radius: 8px;
+        /* НОВИЙ СТИЛЬ: Стиль для знаку множення/рівності */
+        .symbol-separator {
             text-align: center;
-            font-size: 1.2em; 
             font-weight: bold;
-            background-color: transparent; 
+            margin: 0px 0; 
+            font-size: 2.0em; 
+            color: #007bff;
         }
         
-        /* ВИПРАВЛЕННЯ: ВИДАЛЕННЯ СТАНДАРТНОГО OUTLINE НА ФОКУСІ */
-        #meterConstantGroup input:focus {
-            outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-        
-        #meterConstantGroup.filled input {
-            border: 1px solid #28a745; 
-        }
+        /* ============================================== */
+        /* !!! ВИДАЛЕНО ВСІ СТИЛІ #meterConstantGroup ДЛЯ УНІФІКАЦІЇ !!! */
         /* ============================================== */
 
         /* --- Стилі для кнопок-перемикачів --- */
@@ -520,6 +487,15 @@
     
     <h2>1. Технічні параметри</h2>
     
+    <div class="input-group">
+        <div id="meterConstantGroup" class="styled-input-group">
+            <label for="meterConstant">Постійна лічильника (C), імп/кВт·год:</label>
+            <input type="number" id="meterConstant" value="" required min="1" 
+                   oninput="checkAndToggleFilled('meterConstant'); clearErrorHighlight(); calculate()" 
+                   placeholder="Наприклад, 6400"> 
+        </div>
+    </div>
+    
     <div class="input-group" id="voltageRow"> 
         <div id="voltageGroup" class="styled-input-group">
             <label for="voltage">Напруга (U), В</label>
@@ -528,6 +504,8 @@
                    placeholder="Наприклад 230">
         </div>
     </div>
+    
+    <div class="symbol-separator">X</div> 
     
     <div class="input-group" id="currentRow"> 
         <div id="currentGroup" class="styled-input-group">
@@ -538,7 +516,7 @@
         </div>
     </div>
     
-    <div class="or-separator">Або</div>
+    <div class="symbol-separator">= (АБО)</div> 
     
     <div class="input-group" id="powerRow">
         <div id="powerGroup" class="styled-input-group">
@@ -548,15 +526,6 @@
         </div>
     </div>
     
-    <div class="input-group">
-        <div id="meterConstantGroup">
-            <label for="meterConstant">Постійна лічильника (C), імп/кВт·год:</label>
-            <input type="number" id="meterConstant" value="" required min="1" 
-                   oninput="checkAndToggleFilled('meterConstant'); clearErrorHighlight(); calculate()" 
-                   placeholder="Наприклад, 6400"> 
-        </div>
-    </div>
-
     <hr>
 
     <h2>2. Режим розрахунку</h2>
@@ -903,10 +872,11 @@
             valuesPower.push(`P\u208B\u043C\u0456\u0440\u044F\u043D\u0430 (введена): <strong>${P_measured}</strong> кВт`);
             valuesPower.push(`P (Розрахункова потужність): <strong>${P_kW_calculated.toFixed(3)}</strong> кВт`);
         } else if (!isNaN(U) && !isNaN(I) && P_kW_calculated !== null) {
-            formulaPower = `P = (U ${multiplicationDot} I) / 1000 (за умови cos(\u03C6) \u2248 1)`;
+            // ОНОВЛЕНО: Використовуємо символ X для множення у формулі
+            formulaPower = `P = (U X I) / 1000 (за умови cos(\u03C6) \u2248 1)`;
             valuesPower.push(`U (Напруга): <strong>${U}</strong> В`);
             valuesPower.push(`I (Струм): <strong>${I}</strong> А`);
-            valuesPower.push(`P = (${U} ${multiplicationDot} ${I}) / 1000 = <strong>${P_kW_calculated.toFixed(3)}</strong> кВт`);
+            valuesPower.push(`P = (${U} X ${I}) / 1000 = <strong>${P_kW_calculated.toFixed(3)}</strong> кВт`);
         } else {
              return "Для відображення довідки необхідно ввести коректні технічні параметри (U та I, або P).";
         }
@@ -1066,7 +1036,8 @@
             if (impliedP !== null) {
                 powerMeasuredInput.placeholder = `Розрахункове: ${impliedP.toFixed(3)} кВт`;
             } else {
-                powerMeasuredInput.placeholder = "Наприклад 1.5 (замість U та I)";
+                // ЗМІНА 4: Оновлення підказки до U*I/1000
+                powerMeasuredInput.placeholder = "Наприклад 1.5 (U*I/1000)";
             }
         } 
         // =========================================================
