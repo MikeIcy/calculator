@@ -263,7 +263,6 @@
         }
         
         /* НОВИЙ СТИЛЬ: Фон, що імітує імпульс (блимання) */
-        /* ЗМІНА: Змінено колір з синього на червоний */
         #timerSection.flash-active {
             background-color: #ff0000; /* Яскравий ЧЕРВОНИЙ колір імпульсу */
         }
@@ -610,10 +609,14 @@
     </span>
     </div>
 <script>
+    // === НОВІ ГЛОБАЛЬНІ ЗМІННІ ДЛЯ АУДІО ===
+    let audioContext;
+    // ========================================
+
     let timerInterval;
-    let flashInterval; // Додано інтервал для блимання
+    let flashInterval; 
     let startTime;
-    let elapsedTime = 0; // Час в мілісекундах
+    let elapsedTime = 0; 
     
     /**
      * Функція для видалення червоного підсвічування з усіх полів.
@@ -694,13 +697,11 @@
      */
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
-        // let hours = Math.floor(totalSeconds / 3600); // ВИДАЛЕНО
-        let minutes = Math.floor(totalSeconds / 60); // Змінено на загальну кількість хвилин
+        let minutes = Math.floor(totalSeconds / 60); 
         let seconds = totalSeconds % 60;
         let milliseconds = Math.floor((ms % 1000) / 10); 
 
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
-        // Попередній код: return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
     }
     
     function formatHoursMinutesSeconds(t_hours) {
@@ -729,7 +730,7 @@
         if (timerInterval) {
             stopTimer(false); 
         }
-        // Зупиняємо блимання при зміні режиму
+        // Зупиняємо блимання та звук при зміні режиму
         stopFlashing(); 
         
         elapsedTime = 0;
@@ -738,31 +739,65 @@
         document.getElementById('startStopBtn').textContent = "СТАРТ";
         document.getElementById('startStopBtn').style.backgroundColor = "#17a2b8";
         
-        clearErrorHighlight(); // Очищення підсвічування при зміні режиму
+        clearErrorHighlight(); 
         calculate();
     }
     
+    // --- ОНОВЛЕНА ФУНКЦІЯ: ГЕНЕРАЦІЯ ЗВУКУ (BEEP) ---
+    function playBeep() {
+        // Ініціалізація AudioContext при першому використанні 
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        // ЗМІНЕНО: Піднімаємо частоту до 1000 Гц для ефекту "писку"
+        const frequency = 1000; 
+        const duration = 0.05; // Тривалість звуку в секундах (50 мс)
+
+        // Створюємо вузли
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        // Налаштовуємо осцилятор (форма хвилі та частота)
+        oscillator.type = 'sine'; // Чистий монохромний тон
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+
+        // Налаштовуємо гучність (плавний fade-in та fade-out)
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.001); // Швидкий підйом
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + duration); // Швидкий спад
+
+        // Підключаємо вузли
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Запускаємо та зупиняємо
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+    }
+    // ------------------------------------------
+
     // --- ФУНКЦІЇ БЛИМАННЯ (СИНХРОНІЗАЦІЯ З ЛІЧИЛЬНИКОМ) ---
 
     /**
-     * Ініціює блимання фону з розрахованою частотою.
+     * Ініціює блимання та звук з розрахованою частотою.
      * @param {number} P_kW_calculated - Розрахована потужність у кВт.
      * @param {number} C - Постійна лічильника.
      */
     function startFlashing(P_kW_calculated, C) {
-        stopFlashing(); // Зупиняємо, якщо вже працює
+        stopFlashing(); 
 
         // Формула для часу між імпульсами (періоду) в мілісекундах:
-        // T_imp = (1 кВт·год / P кВт) * (3600 сек/год * 1000 мс/сек) / C імп/кВт·год
         // T_imp (мс) = (3600 * 1000) / (C * P)
         const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
         
-        // Встановлюємо інтервал на повний період
-        let isFlashing = false;
         const timerSection = document.getElementById('timerSection');
 
         flashInterval = setInterval(() => {
-            // Імітуємо дуже короткий імпульс (блимання триває 100 мс)
+            // 1. Вмикаємо звук
+            playBeep(); 
+            
+            // 2. Імітуємо дуже короткий імпульс (блимання триває 100 мс)
             timerSection.classList.add('flash-active');
             setTimeout(() => {
                 timerSection.classList.remove('flash-active');
@@ -772,14 +807,13 @@
     }
 
     /**
-     * Зупиняє блимання.
+     * Зупиняє блимання та звук.
      */
     function stopFlashing() {
         if (flashInterval) {
             clearInterval(flashInterval);
             flashInterval = null;
         }
-        // Забезпечуємо, що фон повертається до нормального
         document.getElementById('timerSection').classList.remove('flash-active');
     }
 
@@ -794,7 +828,7 @@
     function startTimer() {
         if (timerInterval) return; 
         
-        clearErrorHighlight(); // При старті таймера припускаємо, що все гаразд
+        clearErrorHighlight(); 
         
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
@@ -807,7 +841,6 @@
         
         // Валідація перед стартом
         if (isNaN(C) || C <= 0 || P_kW_calculated === null || P_kW_calculated <= 0) {
-             // Підсвічуємо поля U, I, P, C
              document.getElementById('voltageGroup').classList.add('error-highlight');
              document.getElementById('currentGroup').classList.add('error-highlight');
              document.getElementById('powerGroup').classList.add('error-highlight');
@@ -817,20 +850,20 @@
              return;
         }
 
-
+        // ПЕРШИЙ ЗВУК ПРИ СТАРТІ
+        playBeep();
+        
         resultDiv.innerHTML = "⏱️ **Секундомір працює...** Натисніть **СТОП** для розрахунку.";
         
-        // Запуск блимання
+        // Запуск блимання та звуку
         startFlashing(P_kW_calculated, C); 
 
         startTime = Date.now() - elapsedTime;
         timerInterval = setInterval(updateTimerDisplay, 10); 
         
         document.getElementById('startStopBtn').textContent = "СТОП";
-        // ЗМІНА: Змінено колір кнопки СТОП на помаранчевий
         document.getElementById('startStopBtn').style.backgroundColor = "#ff6a00"; 
         
-        // Оновлено: використовуємо referenceContent
         document.getElementById('referenceContent').innerHTML = "Очікування на зупинку секундоміра для виконання розрахунку...";
     }
 
@@ -839,7 +872,7 @@
         clearInterval(timerInterval);
         timerInterval = null;
 
-        // Зупинка блимання
+        // Зупинка блимання та звуку
         stopFlashing(); 
 
         document.getElementById('startStopBtn').textContent = "СТАРТ";
@@ -847,7 +880,6 @@
         
         if (doCalculation) {
             calculateFromTimer(elapsedTime);
-            // АВТОМАТИЧНИЙ СКРОЛ ДО РЕЗУЛЬТАТУ
             document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         }
     }
@@ -856,14 +888,13 @@
         if (timerInterval) {
             stopTimer(true);
         } else {
-            startTimer();
+            startTimer(); 
         }
     }
 
     function resetTimer() {
         stopTimer(false); 
         elapsedTime = 0;
-        // ОНОВЛЕНО: Ініціалізація формату дисплея
         document.getElementById('timerDisplay').textContent = "00:00.00"; 
         calculate();
     }
@@ -968,7 +999,7 @@
             return;
         }
         
-        clearErrorHighlight(); // Початок валідації
+        clearErrorHighlight(); 
 
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
@@ -989,7 +1020,6 @@
 
         // 2. Перевірка Потужності
         if (P_kW_calculated === null || P_kW_calculated <= 0) {
-            // Підсвічуємо всі поля для розрахунку потужності
             document.getElementById('voltageGroup').classList.add('error-highlight');
             document.getElementById('currentGroup').classList.add('error-highlight');
             document.getElementById('powerGroup').classList.add('error-highlight');
@@ -1001,7 +1031,6 @@
         
         // 3. Перевірка Часу
         if (timeMs === 0) {
-            // ОНОВЛЕНО: Формат часу
             resultDiv.innerHTML = "⚠️ **Помилка:** Секундомір зупинено на 00:00.00. Спочатку натисніть СТАРТ."; 
             referenceDiv.innerHTML = "Вимірювання часу не було розпочато.";
             return;
@@ -1015,7 +1044,7 @@
         // ОНОВЛЕНО: Вивід результату у форматі "Табло"
         // ==============================================================
         const N_pulses_rounded = Math.round(N_pulses);
-        const t_seconds_rounded = Math.round(timeMs / 1000); // Час в секундах
+        const t_seconds_rounded = Math.round(timeMs / 1000); 
 
         resultDiv.innerHTML = `
             <p>✅ **РОЗРАХУНОК ЗА ЧАСОМ (РЕЖИМ ⏱️)**</p>
@@ -1045,8 +1074,8 @@
         const resultDiv = document.getElementById('result');
         const referenceDiv = document.getElementById('referenceContent'); 
         
-        clearErrorHighlight(); // Початок валідації
-        stopFlashing(); // Зупиняємо блимання, оскільки не йде вимірювання
+        clearErrorHighlight(); 
+        stopFlashing(); 
 
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
