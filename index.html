@@ -300,10 +300,52 @@
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 123, 255, 0.1);
             color: #1a1a1a;
+            text-align: center; /* Центруємо вміст */
+        }
+
+        /* ОНОВЛЕНО: Стиль для великого блоку з числами */
+        .large-result-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 10px 0;
+            gap: 15px; /* Відстань між блоками */
+        }
+
+        /* ОНОВЛЕНО: Стиль для окремого блоку числа та підпису */
+        .result-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ОНОВЛЕНО: Стиль для самого великого числа */
+        .result-value {
+            font-size: 3.5em; /* Дуже великий шрифт */
+            font-weight: 900; /* Екстра жирний */
+            color: #007bff; /* Основний колір */
+            padding: 5px 15px;
+            border-radius: 8px;
+            background-color: #f0f8ff; /* Легкий фон для виділення */
+        }
+
+        /* ОНОВЛЕНО: Стиль для роздільника (схожого на /) */
+        .result-separator {
+            font-size: 3.5em;
+            font-weight: 200;
+            color: #999;
+        }
+
+        /* ОНОВЛЕНО: Стиль для підпису під числом */
+        .result-label {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #555;
+            margin-top: 5px;
         }
 
         #result p {
-            font-size: 1em; 
+            font-size: 1.1em; /* Збільшуємо шрифт для загальних параграфів */
             margin: 8px 0;
         }
         
@@ -817,24 +859,32 @@
         const t_hours = timeMs / 3600000; 
         const E_kWh = P_kW_calculated * t_hours; 
         const N_pulses = E_kWh * C;
-
-        let totalSeconds = Math.floor(timeMs / 1000);
-        let hours = Math.floor(totalSeconds / 3600);
-        let minutes = Math.floor((totalSeconds % 3600) / 60);
-        let seconds = totalSeconds % 60;
-        let hundredths = Math.floor((timeMs % 1000) / 10); 
-
-        const detailedTimeResult = `
-            ${String(hours).padStart(2, '0')} год 
-            ${String(minutes).padStart(2, '0')} хв 
-            ${String(seconds).padStart(2, '0')} сек 
-            ${String(hundredths).padStart(2, '0')} мс
-        `.trim().replace(/\s+/g, ' '); 
         
+        // ==============================================================
+        // ОНОВЛЕНО: Вивід результату у форматі "Табло"
+        // ==============================================================
+        const N_pulses_rounded = Math.round(N_pulses);
+        const t_seconds_rounded = Math.round(timeMs / 1000); // Час в секундах
+
         resultDiv.innerHTML = `
             <p>✅ **РОЗРАХУНОК ЗА ЧАСОМ (РЕЖИМ ⏱️)**</p>
-            <p>Заміряний Час (t): <strong>${detailedTimeResult}</strong></p>
-            <p>Розрахункова Кількість Імпульсів (N): <strong>${N_pulses.toFixed(2)} імп</strong></p>`;
+            
+            <div class="large-result-display">
+                <div class="result-block">
+                    <span class="result-value">${N_pulses_rounded}</span>
+                    <span class="result-label">Імпульсів (N)</span>
+                </div>
+                
+                <span class="result-separator">/</span>
+                
+                <div class="result-block">
+                    <span class="result-value">${t_seconds_rounded}</span>
+                    <span class="result-label">Секунд (t)</span>
+                </div>
+            </div>
+            
+            <p style="font-size: 1em; color: #333;">(Точне значення N: <strong>${N_pulses.toFixed(2)}</strong> імп)</p>`;
+        // ==============================================================
 
         referenceDiv.innerHTML = generateReferenceHTML('pulses', U, I, P_measured, C, null, timeMs, P_kW_calculated, N_pulses, t_hours);
     }
@@ -906,11 +956,31 @@
             const t_hours = E_kWh / P_kW_calculated;
 
             const detailedTimeDisplay = formatHoursMinutesSeconds(t_hours);
+            
+            // ==============================================================
+            // ОНОВЛЕНО: Вивід результату у форматі "Табло"
+            // ==============================================================
+            const t_seconds_rounded = Math.round(t_hours * 3600);
 
             resultDiv.innerHTML = `
                 <p>✅ **РОЗРАХУНОК ЗА ІМПУЛЬСАМИ (РЕЖИМ 📊)**</p>
-                <p>Введена Кількість Імпульсів (N): <strong>${N} імп</strong></p>
-                <p>Розрахунковий Час (t): <strong>${detailedTimeDisplay}</strong></p>`;
+                
+                <div class="large-result-display">
+                    <div class="result-block">
+                        <span class="result-value">${N}</span>
+                        <span class="result-label">Імпульсів (N)</span>
+                    </div>
+                    
+                    <span class="result-separator">/</span>
+                    
+                    <div class="result-block">
+                        <span class="result-value">${t_seconds_rounded}</span>
+                        <span class="result-label">Очікуваних Секунд (t)</span>
+                    </div>
+                </div>
+                
+                <p style="font-size: 1em; color: #333;">(У форматі Г:Х:С: <strong>${detailedTimeDisplay}</strong>)</p>`;
+            // ==============================================================
 
             referenceDiv.innerHTML = generateReferenceHTML('time', U, I, P_measured, C, N, null, P_kW_calculated, null, t_hours);
         }
