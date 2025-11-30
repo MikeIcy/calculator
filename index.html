@@ -308,17 +308,35 @@
         }
         
         /* === СТИЛІ ДЛЯ ДОВІДКИ === */
-        #reference {
+        /* НОВИЙ СТИЛЬ: Заголовок Довідки з курсором */
+        #referenceHeader {
+            cursor: pointer;
+            transition: color 0.2s;
             margin-top: 15px;
+            margin-bottom: 0;
+        }
+        
+        #referenceHeader:hover {
+            color: #ff6a00; /* Змінюємо колір при наведенні */
+        }
+
+        #referenceContent {
+            /* Додано, щоб вміст був прихований за замовчуванням */
+            display: none; 
+            /* Додано для плавного переходу, якщо використовувати JS-анімацію (але тут класичний display:none) */
+            /* transition: max-height 0.3s ease-out; */
+            overflow: hidden; 
+            
             padding: 15px; 
             background-color: #f8f9fa; 
             border: 1px solid #ced4da;
             border-radius: 8px;
             font-size: 0.9em; 
             color: #495057;
+            margin-top: 10px;
         }
 
-        #reference h4 {
+        #referenceContent h4 {
             color: #333;
             margin-top: 5px;
             margin-bottom: 8px;
@@ -327,7 +345,7 @@
         }
 
         /* ОНОВЛЕНИЙ СТИЛЬ ФОРМУЛИ: ЧОРНИЙ КОЛІР ТА ЖИРНИЙ ШРИФТ */
-        #reference .formula {
+        #referenceContent .formula {
             font-family: 'Courier New', monospace;
             font-size: 1em; 
             color: #000000; /* Змінено на чорний */
@@ -340,13 +358,13 @@
             overflow-x: auto; 
         }
         
-        #reference .value-list {
+        #referenceContent .value-list {
             margin-top: 10px;
             padding-left: 20px;
             list-style: disc;
         }
         
-        #reference .value-list strong {
+        #referenceContent .value-list strong {
             color: #28a745; 
             font-weight: bold;
         }
@@ -491,8 +509,8 @@
     
     <hr>
 
-    <h3>4. Довідка (Деталі розрахунку)</h3>
-    <div id="reference">
+    <h3 id="referenceHeader" onclick="toggleReference()">4. Довідка (Деталі розрахунку) ▼</h3>
+    <div id="referenceContent">
         Тут буде відображено використані формули та проміжні значення.
     </div>
 
@@ -510,6 +528,23 @@
     let timerInterval;
     let startTime;
     let elapsedTime = 0; // Час в мілісекундах
+
+    /**
+     * Функція для розгортання/згортання розділу Довідки
+     */
+    function toggleReference() {
+        const content = document.getElementById('referenceContent');
+        const header = document.getElementById('referenceHeader');
+        
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            header.innerHTML = "4. Довідка (Деталі розрахунку) ▲";
+        } else {
+            content.style.display = 'none';
+            header.innerHTML = "4. Довідка (Деталі розрахунку) ▼";
+        }
+    }
+
 
     /**
      * Динамічно додає/видаляє клас 'filled' для виділення поля.
@@ -620,7 +655,8 @@
         document.getElementById('startStopBtn').textContent = "СТОП";
         document.getElementById('startStopBtn').style.backgroundColor = "#dc3545";
         
-        document.getElementById('reference').innerHTML = "Очікування на зупинку секундоміра для виконання розрахунку...";
+        // Оновлено: використовуємо referenceContent
+        document.getElementById('referenceContent').innerHTML = "Очікування на зупинку секундоміра для виконання розрахунку...";
     }
 
     function stopTimer(doCalculation = true) {
@@ -750,7 +786,8 @@
         const C = parseFloat(document.getElementById('meterConstant').value); 
         const P_measured = parseFloat(document.getElementById('powerMeasured').value);
         const resultDiv = document.getElementById('result');
-        const referenceDiv = document.getElementById('reference');
+        // Оновлено: використовуємо referenceContent
+        const referenceDiv = document.getElementById('referenceContent'); 
 
         if (isNaN(C) || C <= 0) {
              resultDiv.innerHTML = "❌ **Помилка:** Введіть коректну **Постійну** лічильника.";
@@ -800,7 +837,8 @@
     function calculate() {
         const calcMode = document.querySelector('input[name="calculationMode"]:checked').value;
         const resultDiv = document.getElementById('result');
-        const referenceDiv = document.getElementById('reference');
+        // Оновлено: використовуємо referenceContent
+        const referenceDiv = document.getElementById('referenceContent'); 
 
 
         const U = parseFloat(document.getElementById('voltage').value); 
@@ -884,6 +922,10 @@
         
         calculate(); 
         toggleCalcInputs();
+        
+        // Згортаємо довідку після ініціалізації
+        document.getElementById('referenceContent').style.display = 'none';
+        document.getElementById('referenceHeader').innerHTML = "4. Довідка (Деталі розрахунку) ▼";
     });
 </script>
 
