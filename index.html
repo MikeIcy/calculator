@@ -148,10 +148,6 @@
             color: #007bff;
         }
         
-        /* ============================================== */
-        /* !!! ВИДАЛЕНО ВСІ СТИЛІ #meterConstantGroup ДЛЯ УНІФІКАЦІЇ !!! */
-        /* ============================================== */
-
         /* --- Стилі для кнопок-перемикачів --- */
 
         .mode-button-group {
@@ -195,6 +191,19 @@
             border: 1px dashed #ccc;
         }
         
+        /* НОВИЙ КОНТЕЙНЕР ДЛЯ ПОЛЯ ВВЕДЕННЯ ІМПУЛЬСІВ ТА КНОПКИ ВІДЛІКУ */
+        .pulses-input-container {
+            /* Прибрано flex для вертикального розташування */
+            margin-bottom: 15px;
+            text-align: center; /* Центрування великої кнопки */
+        }
+        
+        /* ОНОВЛЕНО: Стилі для обгортки поля вводу імпульсів */
+        .pulses-input-wrapper {
+             margin: 0 auto 15px; /* Центрування поля та відступ знизу */
+             max-width: 300px; /* Обмеження ширини для центрування */
+        }
+        
         /* Стиль для INPUT всередині hidden-input (Кількість імпульсів) */
         #inputPulses input {
             width: 100%;
@@ -206,6 +215,40 @@
             font-size: 1.2em; 
             font-weight: bold;
             background-color: white; 
+        }
+        
+        /* СТИЛЬ ДЛЯ КНОПКИ ВІДЛІКУ (ОНОВЛЕНО НА КРУГЛУ) */
+        #startCountdownBtn {
+            background-color: #28a745; /* Green color for start */
+            width: 150px; 
+            height: 150px; 
+            border-radius: 50%; 
+            padding: 0; 
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.5em; 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2); 
+            
+            /* === КЛЮЧОВЕ ВИПРАВЛЕННЯ: Центрування кнопки === */
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto; /* Автоматичні поля для горизонтального центрування */
+            /* ============================================== */
+            
+            text-align: center;
+            line-height: 1.2; 
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        
+        #startCountdownBtn:hover {
+            background-color: #218838;
+        }
+        
+        #startCountdownBtn:active {
+            transform: scale(0.98); 
         }
         
         /* ВИПРАВЛЕННЯ: ВИДАЛЕННЯ СТАНДАРТНОГО OUTLINE НА ФОКУСІ */
@@ -221,7 +264,7 @@
              box-shadow: 0 0 5px rgba(220, 53, 69, 0.5) !important;
         }
 
-        /* Стилі для Секундоміра */
+        /* Стилі для Секундоміра (режим Pulses) */
         #timerSection {
             position: relative; /* Для позиціонування лічильника імпульсів */
             text-align: center;
@@ -233,13 +276,25 @@
             transition: background-color 0.1s; /* Для плавного блимання */
         }
         
+        /* СТИЛІ ДЛЯ ТАЙМЕРА ЗВОРОТНОГО ВІДЛІКУ (НОВИЙ БЛОК) */
+        #countdownSection {
+            position: relative; /* Для позиціонування лічильника імпульсів */
+            text-align: center;
+            padding: 15px;
+            margin-top: 10px;
+            border: 2px solid #ff6a00;
+            border-radius: 8px;
+            background-color: #fff7f0;
+            transition: background-color 0.1s; /* Для плавного блимання */
+        }
+        
         /* НОВИЙ СТИЛЬ: Фон, що імітує імпульс (блимання) */
-        /* ЗМІНА: Змінено колір з синього на червоний */
-        #timerSection.flash-active {
+        #timerSection.flash-active,
+        #countdownSection.flash-active { /* ДОДАНО: #countdownSection */
             background-color: #ff0000; /* Яскравий ЧЕРВОНИЙ колір імпульсу */
         }
         
-        /* НОВИЙ СТИЛЬ: Лічильник імпульсів */
+        /* СТИЛІ ДЛЯ ЛІЧИЛЬНИКА ІМПУЛЬСІВ СЕКУНДОМІРА */
         #pulseCounterDisplay {
             position: absolute;
             top: 5px;
@@ -252,10 +307,30 @@
             background-color: rgba(255, 255, 255, 0.8);
             z-index: 10;
         }
+
+        /* ДОДАНО: СТИЛІ ДЛЯ ЛІЧИЛЬНИКА ІМПУЛЬСІВ ЗВОРОТНОГО ВІДЛІКУ */
+        #countdownPulseCounter {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #007bff; /* Синій колір для контрасту */
+            padding: 2px 5px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+        }
         
-        #timerSection.flash-active #pulseCounterDisplay {
+        #timerSection.flash-active #pulseCounterDisplay,
+        #countdownSection.flash-active #countdownPulseCounter {
             color: white; /* Зміна кольору тексту під час блимання */
             background-color: transparent;
+        }
+        
+        #timerSection.flash-active #timerDisplay,
+        #countdownSection.flash-active #countdownDisplay { /* ДОДАНО: #countdownSection */
+             color: white; /* Зміна кольору тексту під час блимання */
         }
 
         #timerDisplay {
@@ -265,8 +340,11 @@
             color: #28a745;
         }
         
-        #timerSection.flash-active #timerDisplay {
-             color: white; /* Зміна кольору тексту під час блимання */
+        #countdownDisplay {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #ff6a00;
         }
         
         /* === НОВІ СТИЛІ ДЛЯ КНОПОК СЕКУНДОМІРА === */
@@ -383,8 +461,6 @@
         #referenceHeader {
             cursor: pointer;
             transition: color 0.2s;
-            /* ВИДАЛЕНО: margin-top: 15px; */
-            /* ВИДАЛЕНО: margin-bottom: 0; */
         }
         
         #referenceHeader:hover {
@@ -394,8 +470,6 @@
         #referenceContent {
             /* Додано, щоб вміст був прихований за замовчуванням */
             display: none; 
-            /* Додано для плавного переходу, якщо використовувати JS-анімацію (але тут класичний display:none) */
-            /* transition: max-height 0.3s ease-out; */
             overflow: hidden; 
             
             padding: 15px; 
@@ -573,8 +647,20 @@
     </div>
     
     <div id="inputPulses" class="hidden-input">
-        <label for="pulses">Кількість імпульсів (N):</label>
-        <input type="number" id="pulses" value="" required min="1" oninput="clearErrorHighlight(); calculate()" placeholder="Наприклад, 20">
+        <div class="pulses-input-wrapper">
+            <label for="pulses">Кількість імпульсів (N):</label>
+            <input type="number" id="pulses" value="" required min="1" oninput="clearErrorHighlight(); calculate()" placeholder="Наприклад, 20">
+        </div>
+    
+        <div class="pulses-input-container">
+            <button id="startCountdownBtn" onclick="toggleCountdown()">ПОЧАТИ ВІДЛІК</button>
+        </div>
+        
+        <div id="countdownSection" style="display:none;">
+            <div id="countdownPulseCounter">N (залишилось): 0</div>
+            <p>Очікуваний час для **<span id="countdownN">0</span>** імп:</p>
+            <div id="countdownDisplay">--:--</div>
+        </div>
     </div>
 
 
@@ -604,9 +690,8 @@
     </div>
 <script>
     // --- ADDED: playSystemBeep() to generate sound without external files ---
-    function playSystemBeep() {
+    function playSystemBeep(frequency = 800, duration = 0.1, isLongBeep = false) {
         try {
-            // Використання Web Audio API для генерації короткого біпа
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return; 
 
@@ -614,24 +699,30 @@
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
 
-            // Налаштування та підключення
             oscillator.connect(gainNode);
             gainNode.connect(audioCtx.destination);
 
-            // Параметри біпа
-            oscillator.type = 'sine'; // Чиста синусоїдальна хвиля
-            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Частота 800 Hz
-            gainNode.gain.setValueAtTime(1, audioCtx.currentTime); // Початкова гучність
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
 
-            // Швидке згасання гучності
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            // Для короткого імпульсу (блимання)
+            if (!isLongBeep) {
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            } 
+            // Для довгого звукового сигналу в кінці відліку (1.5 сек)
+            else { 
+                duration = 1.5; 
+                oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // Висока частота
+                gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
+                // Згасання наприкінці довгого біпа
+                gainNode.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + duration); 
+            }
 
-            // Старт і швидкий стоп (100 мс)
             oscillator.start();
-            oscillator.stop(audioCtx.currentTime + 0.1); 
+            oscillator.stop(audioCtx.currentTime + duration); 
             
         } catch (e) {
-            // Ігноруємо помилки, пов'язані з політикою автозапуску на мобільних пристроях
             console.error("Audio API error:", e);
         }
     }
@@ -640,8 +731,13 @@
     let timerInterval;
     let flashInterval; 
     let startTime;
-    let elapsedTime = 0; // Час в мілісекундах
-    let pulseCount = 0; // ДОДАНО: Лічильник імпульсів під час вимірювання
+    let elapsedTime = 0; // Час в мілісекундах (для режиму pulses)
+    let pulseCount = 0; // Лічильник імпульсів під час вимірювання (для режиму pulses)
+
+    let countdownInterval; // Інтервал для зворотного відліку часу
+    let countdownFlashInterval; // ДОДАНО: Інтервал для блимання/лічильника імпульсів
+    let countdownRemainingTime = 0; // Час, що залишився в мілісекундах (для режиму time)
+    let pulsesRemaining = 0; // ДОДАНО: Кількість імпульсів, що залишилася
     
     /**
      * Функція для видалення червоного підсвічування з усіх полів.
@@ -718,7 +814,7 @@
     }
 
     /**
-     * ОНОВЛЕНО: Форматує час у мілісекундах до MM:SS.ms (видалено години)
+     * Форматує час у мілісекундах до MM:SS.ms (видалено години)
      */
     function formatTime(ms) {
         let totalSeconds = Math.floor(ms / 1000);
@@ -727,6 +823,28 @@
         let milliseconds = Math.floor((ms % 1000) / 10); 
 
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+    }
+    
+    /**
+     * ОНОВЛЕНО: Форматує час для зворотного відліку. 
+     * Показує ММ:СС.мс для часу менше 1 години, і ГГ:ММ:СС для більшого часу.
+     */
+    function formatCountdownTime(ms) {
+        if (ms < 0) ms = 0;
+        let totalSeconds = Math.floor(ms / 1000);
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        let milliseconds = Math.floor((ms % 1000) / 10); // Centiseconds (00-99)
+
+        // Якщо більше години, показуємо ГГ:ММ:СС
+        if (hours > 0) {
+            return `${String(hours)}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        } 
+        // Якщо менше години, показуємо ММ:СС.мс
+        else {
+            return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(2, '0')}`;
+        }
     }
     
     function formatHoursMinutesSeconds(t_hours) {
@@ -744,26 +862,31 @@
         const inputTimeDiv = document.getElementById('inputTime');
         const inputPulsesDiv = document.getElementById('inputPulses');
         
-        // ЗМІНА: modePulses використовує Секундомір, modeTime використовує Поле введення Імпульсів
+        // Зупинка таймерів при перемиканні режиму
+        if (timerInterval) stopTimer(false); 
+        if (countdownInterval) stopCountdown(false);
+        if (countdownFlashInterval) stopCountdownFlash(); // NEW: Зупинка блимання відліку
+
         if (mode === 'pulses') {
             inputTimeDiv.style.display = 'block';
             inputPulsesDiv.style.display = 'none';
         } else { // mode === 'time'
             inputTimeDiv.style.display = 'none';
             inputPulsesDiv.style.display = 'block';
-        }
-        
-        if (timerInterval) {
-            stopTimer(false); 
+            document.getElementById('countdownSection').style.display = 'none'; // Приховуємо відлік
+            document.getElementById('startCountdownBtn').textContent = "ПОЧАТИ ВІДЛІК";
+            document.getElementById('startCountdownBtn').style.backgroundColor = "#28a745";
         }
         
         stopFlashing(); 
         
         elapsedTime = 0;
-        pulseCount = 0; // Скидання лічильника імпульсів
+        pulseCount = 0; 
+        pulsesRemaining = 0; // NEW: Reset remaining pulses
         
         document.getElementById('timerDisplay').textContent = "00:00.00"; 
-        document.getElementById('pulseCounterDisplay').textContent = "N: 0"; // Оновлення лічильника
+        document.getElementById('pulseCounterDisplay').textContent = "N: 0"; 
+        document.getElementById('countdownPulseCounter').textContent = "N (залишилось): 0"; // NEW: Reset countdown pulse display
         document.getElementById('startStopBtn').textContent = "СТАРТ";
         document.getElementById('startStopBtn').style.backgroundColor = "#17a2b8";
         
@@ -781,22 +904,18 @@
     function startFlashing(P_kW_calculated, C) {
         stopFlashing(); 
 
-        // Формула для часу між імпульсами (періоду) в мілісекундах:
         const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
         
         const timerSection = document.getElementById('timerSection');
-        const pulseCounterDisplay = document.getElementById('pulseCounterDisplay'); // ДОДАНО
+        const pulseCounterDisplay = document.getElementById('pulseCounterDisplay'); 
 
         flashInterval = setInterval(() => {
 
-            // Інкрементуємо та оновлюємо лічильник
             pulseCount++;
             pulseCounterDisplay.textContent = `N: ${pulseCount}`;
 
-            // 🔊 Play system beep
-            playSystemBeep();
+            playSystemBeep(800, 0.1, false);
 
-            // Імітуємо дуже короткий імпульс (блимання триває 100 мс)
             timerSection.classList.add('flash-active');
             setTimeout(() => {
                 timerSection.classList.remove('flash-active');
@@ -816,7 +935,7 @@
         document.getElementById('timerSection').classList.remove('flash-active');
     }
 
-    // --- ФУНКЦІЇ СЕКУНДОМІРА ---
+    // --- ФУНКЦІЇ СЕКУНДОМІРА (РЕЖИМ PULSES) ---
 
     function updateTimerDisplay() {
         const now = Date.now();
@@ -891,10 +1010,178 @@
     function resetTimer() {
         stopTimer(false); 
         elapsedTime = 0;
-        pulseCount = 0; // Скидання лічильника імпульсів
+        pulseCount = 0; 
         document.getElementById('timerDisplay').textContent = "00:00.00"; 
-        document.getElementById('pulseCounterDisplay').textContent = "N: 0"; // Оновлення лічильника
+        document.getElementById('pulseCounterDisplay').textContent = "N: 0"; 
         calculate();
+    }
+    
+    // --- НОВІ ФУНКЦІЇ ЗВОРОТНОГО ВІДЛІКУ (РЕЖИМ TIME) ---
+    
+    /**
+     * ДОДАНО: Зупиняє блимання зворотного відліку
+     */
+    function stopCountdownFlash() {
+        if (countdownFlashInterval) {
+            clearInterval(countdownFlashInterval);
+            countdownFlashInterval = null;
+        }
+        document.getElementById('countdownSection').classList.remove('flash-active');
+    }
+
+    function startCountdown(totalTimeMs) {
+        if (countdownInterval) stopCountdown(false); 
+        stopCountdownFlash(); // NEW: Зупиняємо блимання перед новим стартом
+
+        const countdownDisplay = document.getElementById('countdownDisplay');
+        const startCountdownBtn = document.getElementById('startCountdownBtn');
+        const countdownN_display = document.getElementById('countdownN');
+        const countdownPulseCounter = document.getElementById('countdownPulseCounter'); // NEW
+        const countdownSection = document.getElementById('countdownSection'); // NEW
+        
+        const N_input = parseFloat(document.getElementById('pulses').value); // NEW: Отримати N
+        
+        // Розрахунок параметрів для блимання
+        const U = parseFloat(document.getElementById('voltage').value); 
+        const I = parseFloat(document.getElementById('current').value); 
+        const C = parseFloat(document.getElementById('meterConstant').value); 
+        const P_measured = parseFloat(document.getElementById('powerMeasured').value);
+        const P_kW_calculated = calculatePower(U, I, P_measured);
+        const flashPeriodMs = (3600 * 1000) / (C * P_kW_calculated);
+        
+        countdownRemainingTime = totalTimeMs;
+        pulsesRemaining = N_input; // NEW: Встановлюємо початкову кількість імпульсів
+
+        // Оновлення початкового вигляду
+        countdownN_display.textContent = N_input;
+        countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
+        countdownPulseCounter.textContent = `N (залишилось): ${Math.round(pulsesRemaining)}`; // NEW
+        document.getElementById('countdownSection').style.display = 'block';
+        startCountdownBtn.textContent = "ЗУПИНИТИ ВІДЛІК";
+        startCountdownBtn.style.backgroundColor = "#ff6a00"; 
+        
+        // Вимкнення поля вводу під час відліку
+        document.getElementById('pulses').disabled = true;
+
+        const startTime = Date.now();
+        const expectedEndTime = startTime + totalTimeMs;
+
+        // --- NEW: Pulse Flashing Logic for Countdown ---
+        countdownFlashInterval = setInterval(() => {
+            if (pulsesRemaining <= 0) {
+                 // Тут інтервал може протривати ще трохи, поки не спрацює timeInterval
+                 // Але для коректного відображення зупиняємо
+                 stopCountdownFlash();
+                 return;
+            }
+
+            pulsesRemaining = pulsesRemaining - 1; 
+            
+            // Вивід округленого числа, що залишилось
+            countdownPulseCounter.textContent = `N (залишилось): ${Math.round(pulsesRemaining) < 0 ? 0 : Math.round(pulsesRemaining)}`; 
+            
+            playSystemBeep(800, 0.1, false);
+
+            countdownSection.classList.add('flash-active');
+            setTimeout(() => {
+                countdownSection.classList.remove('flash-active');
+            }, 100); 
+
+        }, flashPeriodMs); 
+        // ---------------------------------------------
+
+        // Інтервал часу
+        countdownInterval = setInterval(() => {
+            const now = Date.now();
+            countdownRemainingTime = expectedEndTime - now;
+            
+            // Якщо час вийшов
+            if (countdownRemainingTime <= 0) {
+                stopCountdown(true);
+            } else {
+                countdownDisplay.textContent = formatCountdownTime(countdownRemainingTime);
+            }
+        }, 10); // ОНОВЛЕНО: інтервал в 10 мс для точного відображення мілісекунд
+    }
+
+    function stopCountdown(isFinished) {
+        if (!countdownInterval) return;
+        
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        
+        stopCountdownFlash(); // NEW: Зупинка блимання
+
+        const startCountdownBtn = document.getElementById('startCountdownBtn');
+        const countdownPulseCounter = document.getElementById('countdownPulseCounter');
+        
+        document.getElementById('pulses').disabled = false; // Увімкнення поля вводу
+
+        if (isFinished) {
+             document.getElementById('countdownDisplay').textContent = formatCountdownTime(0);
+             countdownPulseCounter.textContent = `N (залишилось): 0`; // Фінальне значення
+             startCountdownBtn.textContent = "ВІДЛІК ЗАВЕРШЕНО";
+             startCountdownBtn.style.backgroundColor = "#218838"; 
+             playSystemBeep(1200, 1.5, true); // Довгий сигнал високої частоти
+             
+             // Розрахунок результату як у першому режимі, де розрахунок за імпульсами (t_expected)
+             calculateTimeResult(); 
+             
+        } else {
+             startCountdownBtn.textContent = "ПОЧАТИ ВІДЛІК";
+             startCountdownBtn.style.backgroundColor = "#28a745";
+             document.getElementById('countdownSection').style.display = 'none'; // Приховуємо
+        }
+    }
+    
+    function toggleCountdown() {
+        if (countdownInterval) {
+            stopCountdown(false); // Зупинка користувачем
+            calculate(); // Повернення до початкового розрахунку
+            return;
+        }
+        
+        clearErrorHighlight(); 
+        
+        const U = parseFloat(document.getElementById('voltage').value); 
+        const I = parseFloat(document.getElementById('current').value); 
+        const C = parseFloat(document.getElementById('meterConstant').value); 
+        const N = parseFloat(document.getElementById('pulses').value); 
+        const P_measured = parseFloat(document.getElementById('powerMeasured').value);
+        
+        const P_kW_calculated = calculatePower(U, I, P_measured);
+
+        // 1. Перевірка Постійної лічильника
+        if (isNaN(C) || C <= 0) {
+             document.getElementById('meterConstantGroup').classList.add('error-highlight');
+             document.getElementById('result').innerHTML = "❌ **Помилка:** Введіть коректну **Постійну** лічильника (C).";
+             return;
+        }
+
+        // 2. Перевірка Кількість імпульсів
+        if (isNaN(N) || N <= 0) {
+             document.getElementById('inputPulses').classList.add('error-highlight');
+             document.getElementById('result').innerHTML = "Будь ласка, введіть коректну **Кількість Імпульсів (N)**.";
+             return;
+        }
+
+        // 3. Перевірка Потужності
+        if (P_kW_calculated === null || P_kW_calculated <= 0) {
+            document.getElementById('voltageGroup').classList.add('error-highlight');
+            document.getElementById('currentGroup').classList.add('error-highlight');
+            document.getElementById('powerGroup').classList.add('error-highlight');
+            document.getElementById('result').innerHTML = "❌ **Помилка:** Введіть коректні значення для **Потужності (P)** АБО заповніть **Напругу (U)** та **Струм (I)**.";
+            return;
+        }
+        
+        // Розрахунок очікуваного часу в мілісекундах
+        const E_kWh = N / C; 
+        const t_hours = E_kWh / P_kW_calculated;
+        const totalTimeMs = t_hours * 3600000;
+        
+        // Початок відліку
+        startCountdown(totalTimeMs);
+        document.getElementById('result').innerHTML = "⏳ **Відлік триває...** Очікуйте завершення, або натисніть **ЗУПИНИТИ ВІДЛІК**.";
     }
 
     /**
@@ -1047,7 +1334,7 @@
         // ==============================================================
         // Використовуємо лічильник, який клікнув, або округлене значення
         const N_pulses_display = pulseCount > 0 ? pulseCount : Math.round(N_pulses); 
-        const t_seconds_fixed = (timeMs / 1000).toFixed(1); // ЗМІНА: Секунди з одним знаком після коми
+        const t_seconds_fixed = (timeMs / 1000).toFixed(1); 
 
         resultDiv.innerHTML = `
             <p>✅ **РОЗРАХУНОК ЗА ЧАСОМ (РЕЖИМ ⏱️)**</p>
@@ -1071,6 +1358,48 @@
 
         referenceDiv.innerHTML = generateReferenceHTML('pulses', U, I, P_measured, C, null, timeMs, P_kW_calculated, N_pulses, t_hours);
     }
+    
+    /**
+     * НОВА ФУНКЦІЯ: Відображає результат після завершення зворотного відліку.
+     */
+    function calculateTimeResult() {
+        // У цьому випадку, очікуваний час - це час, що минув, а N - це N_input.
+        const N = parseFloat(document.getElementById('pulses').value); 
+        const U = parseFloat(document.getElementById('voltage').value); 
+        const I = parseFloat(document.getElementById('current').value); 
+        const C = parseFloat(document.getElementById('meterConstant').value); 
+        const P_measured = parseFloat(document.getElementById('powerMeasured').value);
+        const P_kW_calculated = calculatePower(U, I, P_measured);
+        
+        const E_kWh = N / C; 
+        const t_hours = E_kWh / P_kW_calculated;
+        const t_seconds = t_hours * 3600; 
+        const t_seconds_fixed = t_seconds.toFixed(1); 
+        const detailedTimeDisplay = formatHoursMinutesSeconds(t_hours);
+
+        document.getElementById('result').innerHTML = `
+            <p>✅ **РОЗРАХУНОК ЗА ІМПУЛЬСАМИ (РЕЖИМ 📊) - ВИМІРЮВАННЯ ЗАВЕРШЕНО**</p>
+            
+            <div class="large-result-display">
+                <div class="result-block">
+                    <span class="result-value">${N}</span>
+                    <span class="result-label">Імпульсів (N)</span>
+                </div>
+                
+                <span class="result-separator">/</span>
+                
+                <div class="result-block">
+                    <span class="result-value">${t_seconds_fixed}</span>
+                    <span class="result-label">Виміряних Секунд (t)</span>
+                </div>
+            </div>
+            
+            <p style="font-size: 1em; color: #333;">(У форматі Г:Х:С: <strong>${detailedTimeDisplay}</strong>)</p>`;
+        
+        document.getElementById('referenceContent').innerHTML = generateReferenceHTML('time', U, I, P_measured, C, N, null, P_kW_calculated, null, t_hours);
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+    }
+
 
     function calculate() {
         const calcMode = document.querySelector('input[name="calculationMode"]:checked').value;
@@ -1079,6 +1408,7 @@
         
         clearErrorHighlight(); 
         stopFlashing(); 
+        if (countdownInterval) stopCountdown(false);
 
         const U = parseFloat(document.getElementById('voltage').value); 
         const I = parseFloat(document.getElementById('current').value); 
@@ -1139,10 +1469,12 @@
         }
         
         if (calcMode === 'time') {
+            
             // 2. Перевірка Кількість імпульсів
             if (isNaN(N) || N <= 0) {
-                 document.getElementById('inputPulses').classList.add('error-highlight');
-                 resultDiv.innerHTML = "Будь ласка, введіть коректну **Кількість Імпульсів (N)**.";
+                 // Оновлення початкового значення N у дисплеї зворотного відліку
+                 document.getElementById('countdownPulseCounter').textContent = `N (залишилось): 0`; 
+                 resultDiv.innerHTML = "Введіть **Кількість Імпульсів (N)**, щоб розрахувати очікуваний час.";
                  referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
                  return;
             }
@@ -1152,6 +1484,9 @@
                 document.getElementById('voltageGroup').classList.add('error-highlight');
                 document.getElementById('currentGroup').classList.add('error-highlight');
                 document.getElementById('powerGroup').classList.add('error-highlight');
+                
+                // Оновлення початкового значення N у дисплеї зворотного відліку
+                document.getElementById('countdownPulseCounter').textContent = `N (залишилось): ${N}`; 
                 
                 resultDiv.innerHTML = "❌ **Помилка:** Введіть коректні значення для **Потужності (P)** АБО заповніть **Напругу (U)** та **Струм (I)**.";
                 referenceDiv.innerHTML = "Введіть необхідні параметри для розрахунку.";
@@ -1163,11 +1498,14 @@
 
             const detailedTimeDisplay = formatHoursMinutesSeconds(t_hours);
             
+            // Оновлення початкового значення N у дисплеї зворотного відліку
+            document.getElementById('countdownPulseCounter').textContent = `N (залишилось): ${N}`; 
+            
             // ==============================================================
             // ОНОВЛЕНО: Вивід результату у форматі "Табло"
             // ==============================================================
             const t_seconds = t_hours * 3600;
-            const t_seconds_fixed = t_seconds.toFixed(1); // ЗМІНА: Секунди з одним знаком після коми
+            const t_seconds_fixed = t_seconds.toFixed(1); 
 
             resultDiv.innerHTML = `
                 <p>✅ **РОЗРАХУНОК ЗА ІМПУЛЬСАМИ (РЕЖИМ 📊)**</p>
